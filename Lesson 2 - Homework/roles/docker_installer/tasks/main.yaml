@@ -1,0 +1,19 @@
+- include_tasks: ubuntu.yaml
+  when: ansible_os_family == 'Debian'
+  
+- include_vars: ubuntu.yaml
+  when: ansible_os_family == 'Debian'
+ 
+- include_tasks: centos.yaml
+  when: ansible_os_family == 'RedHat'
+  
+- include_vars: centos.yaml
+  when: ansible_os_family == 'RedHat'
+  
+- name: Add users to docker group.
+  become: true
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  with_items: "{{ docker_group_user }}"

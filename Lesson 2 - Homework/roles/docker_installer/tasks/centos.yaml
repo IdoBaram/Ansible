@@ -1,0 +1,46 @@
+---
+# tasks file for roles/docker_installer
+- name: Red Hat step 1 - Uninstall packages
+  become: true
+  yum:
+    name: ['docker','docker-client','docker-client-latest','docker-common','docker-latest','docker-latest-logrotate','docker-logrotate','docker-engine']
+    state: absent
+    update_cache: yes
+    
+- name: Red Hat step 2 - Install packages
+  become: true
+  yum:
+    name: ['yum-utils', 'device-mapper-persistent-data', 'lvm2']
+    state: present
+    update_cache: yes
+  register: docker_engine
+    
+- name: Red Hat step 3 - Add Docker GPG key.
+  become: true  
+  rpm_key:
+    key: https://download.docker.com/linux/centos/gpg
+    state: present  
+
+- name:  Red Hat step 4 - Download and create repo
+  become: true  
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: '/etc/yum.repos.d/docker-ce.repo'
+    
+- name:  Red Hat step 5 - Download containerd.io
+  become: true
+  yum:
+    name: https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.2.6-3.3.el7.x86_64.rpm
+  when: ansible_distribution_major_version | int == 8
+
+- name: Red Hat step 6 - Install Docker
+  become: true
+  package:
+    name: 'docker-ce'
+    state: latest
+ 
+- name:  Red Hat step 7 - Create docker group
+  become: true
+  group:
+    name: docker
+    state: present
